@@ -1,7 +1,6 @@
-import z from "zod";
-import { Controller } from "../contracts/Controller";
+import { Controller } from "@aplication/contracts/Controller";
+import { Schema } from "@kernel/decorators/Schema";
 import { HelloBody, helloSchema } from "./schemas/helloSchema";
-import { Schema } from "../../kernel/decorators/Schema";
 
 @Schema(helloSchema)
 export class HelloController extends Controller<unknown> {

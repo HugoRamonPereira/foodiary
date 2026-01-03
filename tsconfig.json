@@ -42,6 +42,12 @@
     "skipLibCheck": true,
     "noImplicitOverride": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@aplication/*": ["./src/application/*"],
+      "@kernel/*": ["./src/kernel/*"],
+      "@main/*": ["./src/main/*"]
+    },
+    "moduleResolution": "nodenext"
   }
 }

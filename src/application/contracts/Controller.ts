@@ -1,5 +1,4 @@
-import z from "zod";
-import { getSchema } from "../../kernel/decorators/Schema";
+import { getSchema } from "@kernel/decorators/Schema";
 
 export abstract class Controller<TBody = unknown> {
   // protected schema?: z.ZodSchema<TBody>;
