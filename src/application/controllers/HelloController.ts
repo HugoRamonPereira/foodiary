@@ -1,8 +1,10 @@
 import { Controller } from "@aplication/contracts/Controller";
+import { HelloUseCase } from "@aplication/usecases/HelloUseCase";
+import { Injectable } from "@kernel/decorators/Injectable";
 import { Schema } from "@kernel/decorators/Schema";
-import { HelloUseCase } from "../../usecases/HelloUseCase";
 import { HelloBody, helloSchema } from "./schemas/helloSchema";
 
+@Injectable()
 @Schema(helloSchema)
 export class HelloController extends Controller<unknown> {
   constructor(private readonly helloUseCase: HelloUseCase) {
