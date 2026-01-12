@@ -1,15 +1,13 @@
 import { getSchema } from "@kernel/decorators/Schema";
 
-export abstract class Controller<TBody = unknown> {
-  // protected schema?: z.ZodSchema<TBody>;
-
+export abstract class Controller<TResponse = unknown, TRequest = any> {
   protected abstract handle(
-    request: Controller.Request<TBody>
-  ): Promise<Controller.Response<TBody>>;
+    request: Controller.Request<TRequest>
+  ): Promise<Controller.Response<TResponse>>;
 
   public execute(
-    request: Controller.Request<TBody>
-  ): Promise<Controller.Response<TBody>> {
+    request: Controller.Request<TRequest>
+  ): Promise<Controller.Response<TResponse>> {
     const body = this.validateBody(request.body);
 
     return this.handle({
@@ -18,22 +16,13 @@ export abstract class Controller<TBody = unknown> {
     });
   }
 
-  // private validateBody(body:Controller.Request["body"]) {
-  //   const schema = getSchema(this);
-  //   if (!schema) {
-  //     return body;
-  //   }
-
-  //   return schema.parse(body);
-  // }
-
-  private validateBody(body: unknown): TBody {
+  private validateBody(body: unknown): TRequest {
     const schema = getSchema(this);
     if (!schema) {
-      return body as TBody;
+      return body as TRequest;
     }
 
-    return schema.parse(body) as TBody;
+    return schema.parse(body) as TRequest;
   }
 }
 
