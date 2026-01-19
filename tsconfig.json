@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    "types": ["node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -47,7 +47,8 @@
       "@aplication/*": ["./src/application/*"],
       "@kernel/*": ["./src/kernel/*"],
       "@main/*": ["./src/main/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@infra/*": ["./src/infra/*"]
     },
     "moduleResolution": "nodenext"
   }
