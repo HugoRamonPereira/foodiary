@@ -7,9 +7,17 @@ provider:
   runtime: nodejs22.x
   memorySize: 128
   stage: ${opt:stage, 'dev'}
+  environment: ${file(./sls/config/env.yml)}
 
 package:
   individually: true
+
+# This custom prop named cognito was created so that we can store this value in a single place and reuse it
+# this code that ends with UserPool was being used in 2 different files, so we created only one here and make a reference to it
+# wherever we want to use it, it was being used in UserPool.yml and auth.yml
+custom:
+  cognito:
+    PoolName: ${self:service}-${self:provider.stage}-UserPool
 
 build:
   esbuild:

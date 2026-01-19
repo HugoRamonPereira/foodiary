@@ -9,7 +9,7 @@ import { lambdaErrorResponse } from "@main/utils/lambdaErrorResponse";
 
 export function lambdaHttpAdapter(controller: Controller<unknown>) {
   return async (
-    event: APIGatewayProxyEventV2
+    event: APIGatewayProxyEventV2,
   ): Promise<APIGatewayProxyResultV2> => {
     try {
       const body = lambdaBodyParser(event.body);
@@ -41,6 +41,9 @@ export function lambdaHttpAdapter(controller: Controller<unknown>) {
       if (error instanceof HttpError) {
         return lambdaErrorResponse(error);
       }
+
+      // This is error will show in CloudWatch
+      console.log(error);
 
       return lambdaErrorResponse({
         statusCode: 500,
