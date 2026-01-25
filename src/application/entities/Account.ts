@@ -8,10 +8,12 @@ export class Account {
   readonly createdAt: Date;
 
   constructor(attr: Account.Attributes) {
-    this.id = KSUID.randomSync().string;
+    // for the id use attr.id if it doesnt exist then create a random one with KSUID... this is the fallback
+    this.id = attr.id ?? KSUID.randomSync().string;
     this.email = attr.email;
     this.externalId = attr.externalId;
-    this.createdAt = new Date();
+    // same as above here
+    this.createdAt = attr.createdAt ?? new Date();
   }
 }
 
@@ -19,5 +21,8 @@ export namespace Account {
   export type Attributes = {
     email: string;
     externalId: string;
+    // these 2 optional props were added for once I want to recover an account I dont need a new id or date/timestamp
+    id?: string;
+    createdAt?: Date;
   };
 }

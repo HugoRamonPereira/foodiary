@@ -2,6 +2,7 @@ import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { ZodError } from "zod";
 
 import { Controller } from "@aplication/contracts/Controller";
+import { ApplicationError } from "@aplication/errors/application/ApplicationError";
 import { ErrorCode } from "@aplication/errors/ErrorCode";
 import { HttpError } from "@aplication/errors/http/HttpError";
 import { lambdaBodyParser } from "@main/utils/lambdaBodyParser";
@@ -40,6 +41,17 @@ export function lambdaHttpAdapter(controller: Controller<unknown>) {
 
       if (error instanceof HttpError) {
         return lambdaErrorResponse(error);
+      }
+
+      // Had to create an object because the Application Errors do not have a statusCode, this is why I am sending a direct 400
+      // without specifying a error.statusCode because it does not exist
+      if (error instanceof ApplicationError) {
+        return lambdaErrorResponse({
+          // statusCode is saying that if there is a statusCode then show it otherwise show a 400
+          statusCode: error.statusCode ?? 400,
+          code: error.code,
+          message: error.message,
+        });
       }
 
       // This is error will show in CloudWatch
