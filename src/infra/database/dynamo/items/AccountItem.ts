@@ -22,10 +22,22 @@ export class AccountItem {
   }
 
   // Created this factory function to avoid creating an account in the AccountRepository file
+  // fromEntity creates an Account Item from an Entity
   static fromEntity(account: Account) {
     return new AccountItem({
       ...account,
       createdAt: account.createdAt.toISOString(),
+    });
+  }
+
+  // Created this factory function to avoid creating an account in the AccountRepository file
+  // here in toEntity we create an Entity from an Account Item
+  static toEntity(accountItem: AccountItem.ItemType) {
+    return new Account({
+      id: accountItem.id,
+      email: accountItem.email,
+      externalId: accountItem.externalId,
+      createdAt: new Date(accountItem.createdAt),
     });
   }
 
