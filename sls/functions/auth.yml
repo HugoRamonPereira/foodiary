@@ -20,3 +20,10 @@ preSignUpTrigger:
         trigger: PreSignUp
         existing: true
         forceDeploy: true
+
+# The trigger was configured mannually so that we can have access to Cognito Trigger Event Version 2 (V2)
+# This is why there is nothing but the handler here, it is configured in the file UserPool.yml
+# in the prop LambdaConfig and preTokenGenerationConfig
+# If the name of the function change then the same name must be used in the UserPool.yml LambdaArn
+preTokenGenerationTrigger:
+  handler: src/main/functions/auth/preTokenGenerationTrigger.handler
