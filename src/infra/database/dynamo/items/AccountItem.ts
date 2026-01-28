@@ -23,9 +23,17 @@ export class AccountItem {
 
   // Created this factory function to avoid creating an account in the AccountRepository file
   // fromEntity creates an Account Item from an Entity
+  // static fromEntity(account: Account) {
+  //   return new AccountItem({
+  //     ...account,
+  //     createdAt: account.createdAt.toISOString(),
+  //   });
+  // }
   static fromEntity(account: Account) {
     return new AccountItem({
-      ...account,
+      id: account.id,
+      email: account.email,
+      externalId: account.externalId ?? undefined, // Standardizes the value
       createdAt: account.createdAt.toISOString(),
     });
   }
@@ -36,7 +44,7 @@ export class AccountItem {
     return new Account({
       id: accountItem.id,
       email: accountItem.email,
-      externalId: accountItem.externalId,
+      externalId: accountItem.externalId as string,
       createdAt: new Date(accountItem.createdAt),
     });
   }
@@ -76,7 +84,7 @@ export namespace AccountItem {
   export type Attributes = {
     id: string;
     email: string;
-    externalId: string;
+    externalId?: string | undefined;
     createdAt: string;
   };
 

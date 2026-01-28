@@ -21,9 +21,18 @@ export class SignUpUseCase {
       throw new EmailAlreadyInUse();
     }
 
-    const { externalId } = await this.authGateway.signUp({ email, password });
+    // This is where we only create the object in memory for a new account
+    const account = new Account({ email });
+    // Registered data in Cognito
+    const { externalId } = await this.authGateway.signUp({
+      email,
+      password,
+      internalId: account.id,
+    });
 
-    const account = new Account({ email, externalId });
+    // Change the id for the one I obtained above
+    account.externalId = externalId;
+    // And only here I save it to the DynamoDB
     await this.accountRepository.create(account);
 
     const { accessToken, refreshToken } = await this.authGateway.signIn({

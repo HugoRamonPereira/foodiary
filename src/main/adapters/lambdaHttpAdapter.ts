@@ -14,29 +14,36 @@ import { lambdaErrorResponse } from "@main/utils/lambdaErrorResponse";
 
 type Event = APIGatewayProxyEventV2 | APIGatewayProxyEventV2WithJWTAuthorizer;
 
-export function lambdaHttpAdapter(controller: Controller<unknown>) {
+export function lambdaHttpAdapter(controller: Controller<any, unknown>) {
   return async (event: Event): Promise<APIGatewayProxyResultV2> => {
     try {
       const body = lambdaBodyParser(event.body);
       const params = event.pathParameters ?? {};
       const queryParams = event.queryStringParameters ?? {};
+      const accountId =
+        "authorizer" in event.requestContext
+          ? (event.requestContext.authorizer.jwt.claims.internalId as string)
+          : null;
 
       // Added APIGatewayProxyEventV2WithJWTAuthorizer to the type Event above so that it can show the prop
       // authorizer in the lines below and have access to jwt and claims
-      if ("authorizer" in event.requestContext) {
-        console.log(
-          JSON.stringify(
-            event.requestContext.authorizer.jwt.claims.internalId,
-            null,
-            2,
-          ),
-        );
-      }
+      // if ("authorizer" in event.requestContext) {
+      //   console.log(
+      //     JSON.stringify(
+      //       {
+      //         internalId: event.requestContext.authorizer.jwt.claims.internalId,
+      //       },
+      //       null,
+      //       2,
+      //     ),
+      //   );
+      // }
 
       const response = await controller.execute({
         body,
         params,
         queryParams,
+        accountId,
       });
 
       return {
