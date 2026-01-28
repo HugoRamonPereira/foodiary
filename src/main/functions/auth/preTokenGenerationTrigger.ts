@@ -8,7 +8,11 @@ export async function handler(event: PreTokenGenerationV2TriggerEvent) {
       accessTokenGeneration: {
         claimsToAddOrOverride: {
           // This is the prop we added, this is how we are going to identify the users of our project
-          internalId: ",smdhfbgdhf",
+          internalId: event.request.userAttributes["custom:internalId"] ?? "",
+          // This satisfies the TypeScript compiler because the result is guaranteed to be a string, even if the attribute is missing.
+          // internalId: event.request.userAttributes["custom:internalId"]!,
+          // The Non-Null Assertion
+          // If you are absolutely certain that every single user in your Cognito pool will have this custom attribute, you can use the ! operator.
         },
       },
     },

@@ -4,7 +4,7 @@ import KSUID from "ksuid";
 export class Account {
   readonly id: string;
   readonly email: string;
-  externalId: string; // externalId will be mutable this is why I didn't add readonly to it
+  externalId: string | undefined; // externalId will be mutable this is why I didn't add readonly to it
   readonly createdAt: Date;
 
   constructor(attr: Account.Attributes) {
@@ -20,7 +20,7 @@ export class Account {
 export namespace Account {
   export type Attributes = {
     email: string;
-    externalId: string;
+    externalId?: string | undefined;
     // these 2 optional props were added for once I want to recover an account I dont need a new id or date/timestamp
     id?: string;
     createdAt?: Date;
