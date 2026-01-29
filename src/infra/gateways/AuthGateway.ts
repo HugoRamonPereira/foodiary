@@ -1,4 +1,5 @@
 import {
+  GetTokensFromRefreshTokenCommand,
   InitiateAuthCommand,
   SignUpCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
@@ -70,6 +71,33 @@ export class AuthGateway {
     };
   }
 
+  // Refresh Token Rotation is already enabled in the file UserPool.yml inside the UserPoolClient
+  async refreshToken({
+    refreshToken,
+  }: AuthGateway.RefreshTokenParams): Promise<AuthGateway.RefreshTokenResult> {
+    const command = new GetTokensFromRefreshTokenCommand({
+      ClientId: this.appConfig.auth.cognito.client.id,
+      RefreshToken: refreshToken,
+      ClientSecret: this.appConfig.auth.cognito.client.secret,
+    });
+
+    const { AuthenticationResult } = await cognitoClient.send(command);
+
+    // This is is known as a guard, without this check the return below it would have failed because the values could
+    // be a string or undefined and by checking with an if it works fine
+    if (
+      !AuthenticationResult?.AccessToken ||
+      !AuthenticationResult.RefreshToken
+    ) {
+      throw new Error("Couldn't refresh the token");
+    }
+
+    return {
+      accessToken: AuthenticationResult?.AccessToken,
+      refreshToken: AuthenticationResult?.RefreshToken,
+    };
+  }
+
   private getSecretHash(email: string): string {
     // Base64 (HMAC_SHA256 ( "Client Secret Key", "Username" + "Client Id"))
     // Used createHmac from node:crypto to generate the HMAC in SHA256 format to satisfy AWS Cognito
@@ -101,6 +129,15 @@ export namespace AuthGateway {
   };
 
   export type SignInResult = {
+    accessToken: string;
+    refreshToken: string;
+  };
+
+  export type RefreshTokenParams = {
+    refreshToken: string;
+  };
+
+  export type RefreshTokenResult = {
     accessToken: string;
     refreshToken: string;
   };
