@@ -1,3 +1,4 @@
+import { InvalidRefreshToken } from "@aplication/errors/application/InvalidRefreshToken";
 import { AuthGateway } from "@infra/gateways/AuthGateway";
 import { Injectable } from "@kernel/decorators/Injectable";
 
@@ -8,13 +9,17 @@ export class RefreshTokenUseCase {
   async execute({
     refreshToken,
   }: RefreshTokenUseCase.Input): Promise<RefreshTokenUseCase.Output> {
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-      await this.authGateway.refreshToken({ refreshToken });
+    try {
+      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+        await this.authGateway.refreshToken({ refreshToken });
 
-    return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    };
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch {
+      throw new InvalidRefreshToken();
+    }
   }
 }
 
