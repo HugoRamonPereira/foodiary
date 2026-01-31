@@ -19,6 +19,20 @@ refreshToken:
         method: POST
         path: /auth/refresh-token
 
+forgotPassword:
+  handler: src/main/functions/auth/forgotPassword.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /auth/forgot-password
+
+confirmForgotPassword:
+  handler: src/main/functions/auth/confirmForgotPassword.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /auth/forgot-password/confirm
+
 preSignUpTrigger:
   handler: src/main/functions/auth/preSignUpTrigger.handler
   events:
