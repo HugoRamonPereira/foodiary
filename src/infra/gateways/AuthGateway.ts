@@ -1,3 +1,4 @@
+import { InvalidRefreshToken } from "@aplication/errors/application/InvalidRefreshToken";
 import {
   GetTokensFromRefreshTokenCommand,
   InitiateAuthCommand,
@@ -16,31 +17,35 @@ export class AuthGateway {
     email,
     password,
   }: AuthGateway.SignInParams): Promise<AuthGateway.SignInResult> {
-    const command = new InitiateAuthCommand({
-      AuthFlow: "USER_PASSWORD_AUTH",
-      ClientId: this.appConfig.auth.cognito.client.id,
-      AuthParameters: {
-        USERNAME: email,
-        PASSWORD: password,
-        SECRET_HASH: this.getSecretHash(email),
-      },
-    });
+    try {
+      const command = new InitiateAuthCommand({
+        AuthFlow: "USER_PASSWORD_AUTH",
+        ClientId: this.appConfig.auth.cognito.client.id,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+          SECRET_HASH: this.getSecretHash(email),
+        },
+      });
 
-    const { AuthenticationResult } = await cognitoClient.send(command);
+      const { AuthenticationResult } = await cognitoClient.send(command);
 
-    // This is is known as a guard, without this check the return below it would have failed because the values could
-    // be a string or undefined and by checking with an if it works fine
-    if (
-      !AuthenticationResult?.AccessToken ||
-      !AuthenticationResult.RefreshToken
-    ) {
-      throw new Error(`Couldn't authenticate user ${email}`);
+      // This is is known as a guard, without this check the return below it would have failed because the values could
+      // be a string or undefined and by checking with an if it works fine
+      if (
+        !AuthenticationResult?.AccessToken ||
+        !AuthenticationResult.RefreshToken
+      ) {
+        throw new Error(`Couldn't authenticate user ${email}`);
+      }
+
+      return {
+        accessToken: AuthenticationResult?.AccessToken,
+        refreshToken: AuthenticationResult?.RefreshToken,
+      };
+    } catch {
+      throw new InvalidRefreshToken();
     }
-
-    return {
-      accessToken: AuthenticationResult?.AccessToken,
-      refreshToken: AuthenticationResult?.RefreshToken,
-    };
   }
 
   async signUp({
