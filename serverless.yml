@@ -11,6 +11,9 @@ provider:
   iam:
     role: ${file(./sls/config/role.yml)}
   httpApi:
+    # By adding this disableDefaultEndpoint in API Gateway there will be a prop in API details saying this deafult endpoint is disables
+    # which means we can no longer use the custom domain, we can only use the endpoint configured -> api.hugoramonpereira.dev
+    disableDefaultEndpoint: ${env:DISABLE_DEFAULT_APIGW_ENDPOINT, false}
     authorizers:
       CognitoAuthorizer:
         type: jwt

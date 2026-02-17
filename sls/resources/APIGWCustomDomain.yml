@@ -1,17 +1,36 @@
+# A condition to check if the env variable of API_DOMAIN_NAME and ROUTE53_HOSTED_ZONE_ID are not empty
+# if they are then the custom domain is not gonna be set up, applied this condition to APIGWCustomDomainCertificate, APIGWCustomDomain,
+# APIGWCustomDomainMapping and APIGWCustomDomainDNSRecord so all of them are only gonna happen if the envs are not empty
+
+# OBS: Added and empty string after the envs so that it will not crash in case they are not defined in the .env file
+# now if I pass and empty env value it works but if I delete the env values then the deploy crashes
+Conditions:
+  ShouldSetupCustomDomain: !And
+    - !Not
+      - !Equals
+        - ${env:API_DOMAIN_NAME, ''}
+        - ""
+    - !Not
+      - !Equals
+        - ${env:ROUTE53_HOSTED_ZONE_ID, ''}
+        - ""
+
 Resources:
   APIGWCustomDomainCertificate:
+    Condition: ShouldSetupCustomDomain
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: ${env:API_DOMAIN_NAME}
+      DomainName: ${env:API_DOMAIN_NAME, ''}
       ValidationMethod: DNS
       DomainValidationOptions:
-        - DomainName: ${env:API_DOMAIN_NAME}
-          HostedZoneId: ${env:ROUTE53_HOSTED_ZONE_ID}
+        - DomainName: ${env:API_DOMAIN_NAME, ''}
+          HostedZoneId: ${env:ROUTE53_HOSTED_ZONE_ID, ''}
 
   APIGWCustomDomain:
+    Condition: ShouldSetupCustomDomain
     Type: AWS::ApiGatewayV2::DomainName
     Properties:
-      DomainName: ${env:API_DOMAIN_NAME}
+      DomainName: ${env:API_DOMAIN_NAME, ''}
       RoutingMode: API_MAPPING_ONLY
       DomainNameConfigurations:
         - EndpointType: REGIONAL
@@ -20,8 +39,20 @@ Resources:
           CertificateArn: !Ref APIGWCustomDomainCertificate
 
   APIGWCustomDomainMapping:
+    Condition: ShouldSetupCustomDomain
     Type: AWS::ApiGatewayV2::ApiMapping
     Properties:
       ApiId: !Ref HttpApi
       DomainName: !Ref APIGWCustomDomain
       Stage: $default
+
+  APIGWCustomDomainDNSRecord:
+    Condition: ShouldSetupCustomDomain
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: ${env:ROUTE53_HOSTED_ZONE_ID, ''}
+      Name: !Ref APIGWCustomDomain
+      Type: A
+      AliasTarget:
+        HostedZoneId: !GetAtt APIGWCustomDomain.RegionalHostedZoneId
+        DNSName: !GetAtt APIGWCustomDomain.RegionalDomainName
