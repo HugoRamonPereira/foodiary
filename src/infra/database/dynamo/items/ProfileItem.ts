@@ -54,6 +54,7 @@ export class ProfileItem {
       gender: profileItem.gender,
       height: profileItem.height,
       weight: profileItem.weight,
+      goal: profileItem.goal,
       createdAt: new Date(profileItem.createdAt),
     });
   }
@@ -89,6 +90,7 @@ export namespace ProfileItem {
     height: number;
     weight: number;
     activityLevel: Profile.ActivityLevel;
+    goal: Profile.Goal;
     createdAt: string;
   };
 
