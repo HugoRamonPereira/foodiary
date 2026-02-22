@@ -6,3 +6,9 @@ statements:
     Resource:
       - !GetAtt MainTable.Arn
       - !Sub "${MainTable.Arn}/index/*"
+
+  # This is where I give permission to the function deleteUser in AuthGateway file to perform the action
+  # which is to delete users from the pool in Cognito Identity Provider
+  - Effect: Allow
+    Action: cognito-idp:AdminDeleteUser
+    Resource: !GetAtt UserPool.Arn

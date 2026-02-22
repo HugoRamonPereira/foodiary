@@ -1,5 +1,6 @@
 import { InvalidRefreshToken } from "@aplication/errors/application/InvalidRefreshToken";
 import {
+  AdminDeleteUserCommand,
   ConfirmForgotPasswordCommand,
   ForgotPasswordCommand,
   GetTokensFromRefreshTokenCommand,
@@ -145,6 +146,19 @@ export class AuthGateway {
       .update(`${email}${id}`)
       .digest("base64");
   }
+
+  // These are the functions that perform actions in DynamoDB, the one below removes users from the pool
+  // This function uses AdminDeleteUserCommand not Client anymore, we need permissions to perform such actions
+  async deleteUser({ externalId }: AuthGateway.DeleteUserParams) {
+    // For this AdminDeleteUserCommand to work we need to give Lambda permission to perform the action
+    // In order to achieve that we need to go to the role.yml in the statements, Effect: Allow, Action and specify the rest there
+    const command = new AdminDeleteUserCommand({
+      UserPoolId: this.appConfig.auth.cognito.pool.id,
+      Username: externalId,
+    });
+
+    await cognitoClient.send(command);
+  }
 }
 
 export namespace AuthGateway {
@@ -185,5 +199,9 @@ export namespace AuthGateway {
     email: string;
     confirmationCode: string;
     password: string;
+  };
+
+  export type DeleteUserParams = {
+    externalId: string;
   };
 }
