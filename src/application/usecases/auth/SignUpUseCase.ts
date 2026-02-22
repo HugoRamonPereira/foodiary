@@ -7,6 +7,7 @@ import { SignUpUnitOfWork } from "@infra/database/dynamo/uow/SignUpUnitOfWork";
 import { AuthGateway } from "@infra/gateways/AuthGateway";
 import { Injectable } from "@kernel/decorators/Injectable";
 import { Saga } from "@shared/saga/saga";
+import { GoalCalculator } from "../../../services/GoalCalculator";
 
 @Injectable()
 export class SignUpUseCase {
@@ -34,12 +35,16 @@ export class SignUpUseCase {
         ...profileInfo,
         accountId: account.id,
       });
+
+      const { calories, carbohydrates, fats, proteins } =
+        GoalCalculator.calculate(profile);
+
       const goal = new Goal({
         accountId: account.id,
-        calories: 2000,
-        proteins: 25,
-        fats: 200,
-        carbohydrates: 1200,
+        calories,
+        carbohydrates,
+        fats,
+        proteins,
       });
 
       // Registered data in Cognito
@@ -104,6 +109,7 @@ export namespace SignUpUseCase {
       height: number;
       weight: number;
       activityLevel: Profile.ActivityLevel;
+      goal: Profile.Goal;
     };
   };
 

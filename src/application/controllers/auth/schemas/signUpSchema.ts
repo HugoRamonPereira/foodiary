@@ -16,6 +16,7 @@ export const signUpSchema = z.object({
     // DynamoDB doesn’t actually have a native "Date" data type. Unlike some SQL databases that have specific DATETIME or TIMESTAMP types,
     // DynamoDB relies on its core set of types: String, Number, and Binary.
     gender: z.nativeEnum(Profile.Gender),
+    goal: z.nativeEnum(Profile.Goal),
     height: z.number(),
     weight: z.number(),
     activityLevel: z.nativeEnum(Profile.ActivityLevel),
