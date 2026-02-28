@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.25.0",
+  "packageManager": "pnpm@10.30.3",
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@react-email/preview-server": "^5.2.5",
@@ -22,13 +22,16 @@
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
     "react-email": "^5.2.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.51.0"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.971.0",
     "@aws-sdk/client-dynamodb": "^3.972.0",
+    "@aws-sdk/client-s3": "^3.999.0",
     "@aws-sdk/lib-dynamodb": "^3.972.0",
+    "@aws-sdk/s3-presigned-post": "^3.999.0",
     "@react-email/body": "^0.2.1",
     "@react-email/column": "^0.0.14",
     "@react-email/head": "^0.0.13",

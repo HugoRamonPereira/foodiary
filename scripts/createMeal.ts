@@ -1,0 +1,121 @@
+/* eslint-disable no-console */
+import { promises as fs } from "fs";
+import path from "path";
+
+const API_URL = "https://api.hugoramonpereira.dev/meals";
+const TOKEN =
+  "eyJraWQiOiI3QVwvc25adjdBXC81N3BKeWZicUxaeWdcLzFRNGJyMHVcL29USzR6c2E5TEppST0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjMzJjZmFlYS0wMDIxLTcwMDctNzAwNy1hNjA1NzAxMWU2NjkiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuc2EtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3NhLWVhc3QtMV9ZNUNOV3hXVVoiLCJjbGllbnRfaWQiOiI2czg1MXBqcm1qOGFxZGFyN2I4bDJsMmtobCIsIm9yaWdpbl9qdGkiOiI3M2UzODQ2Zi00YWRkLTRlNTMtYTFmNy05NmRmOTkzZGIwMWMiLCJpbnRlcm5hbElkIjoiM0FITGp6U1FrSlhJcGFrcXRmcWd3Z2RMY251IiwiZXZlbnRfaWQiOiJjYjFiZWU1NS01ZmU3LTQxYjQtYjdkYS03ZjgxNTkzNjZmZjkiLCJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJzY29wZSI6ImF3cy5jb2duaXRvLnNpZ25pbi51c2VyLmFkbWluIiwiYXV0aF90aW1lIjoxNzcyMjQ0Njg5LCJleHAiOjE3NzIyODc4ODksImlhdCI6MTc3MjI0NDY4OSwianRpIjoiM2NjNjYyMWMtY2FlYy00NmFiLWEwMWMtNzUyNjFmZDBkYmMwIiwidXNlcm5hbWUiOiJjMzJjZmFlYS0wMDIxLTcwMDctNzAwNy1hNjA1NzAxMWU2NjkifQ.f6-VvfdOGG5eUx2rOk3d8Ze75Xap7tlORdPtP3N-K4eVNG3gfLRk3JPDkftU8NNr_mLrYYGY2KEMgU7DcfoXi0LEUSMST26mjF8AlB3YvhpzHeWH25mGZrfj0VWKj49-0B5cqcys3HniMuOEtaG9GPEyLlschNkmcTafK_3-yGNQ3UbwF3F9_--gVBqj8M_-CJ4rd3r0qiuP5HLluu_At1OT9uUsCyWX_bMrLPjxdOmjWoykQgqa_jt_2Fl46g5-2JE-Ad1nsjoao5LihMFs4q9R3mn2fQ4b8Dxe8Hamg8I93Gd3raNb1WZ5cdN7jDzOSH6EmpH3AjLx2XtBljnqqA";
+
+interface IPresignResponse {
+  uploadSignature: string;
+}
+
+interface IPresignDecoded {
+  url: string;
+  fields: Record<string, string>;
+}
+
+async function readFile(
+  filePath: string,
+  type: "audio/m4a" | "image/jpeg",
+): Promise<{
+  data: Buffer;
+  size: number;
+  type: string;
+}> {
+  console.log(`🔍 Reading file from disk: ${filePath}`);
+  const data = await fs.readFile(filePath);
+  return {
+    data,
+    size: data.length,
+    type,
+  };
+}
+
+async function createMeal(
+  fileType: string,
+  fileSize: number,
+): Promise<IPresignDecoded> {
+  console.log(
+    `🚀 Requesting presigned POST for ${fileSize} bytes of type ${fileType}`,
+  );
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${TOKEN}`,
+    },
+    body: JSON.stringify({ file: { type: fileType, size: fileSize } }),
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to get presigned POST: ${res.status} ${res.statusText}`,
+    );
+  }
+
+  const json = (await res.json()) as IPresignResponse;
+  const decoded = JSON.parse(
+    Buffer.from(json.uploadSignature, "base64").toString("utf-8"),
+  ) as IPresignDecoded;
+
+  console.log("✅ Received presigned POST data");
+  return decoded;
+}
+
+function buildFormData(
+  fields: Record<string, string>,
+  fileData: Buffer,
+  filename: string,
+  fileType: string,
+): FormData {
+  console.log(
+    `📦 Building FormData with ${Object.keys(fields).length} fields and file ${filename}`,
+  );
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    form.append(key, value);
+    console.log({ key, value });
+  }
+
+  const blob = new Blob([new Uint8Array(fileData)], { type: fileType });
+  form.append("file", blob, filename);
+  return form;
+}
+
+async function uploadToS3(url: string, form: FormData): Promise<void> {
+  console.log(`📤 Uploading to S3 at ${url}`);
+  const res = await fetch(url, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `S3 upload failed: ${res.status} ${res.statusText} — ${text}`,
+    );
+  }
+
+  console.log("🎉 Upload completed successfully");
+}
+
+async function uploadFile(
+  filePath: string,
+  fileType: "audio/m4a" | "image/jpeg",
+): Promise<void> {
+  try {
+    const { data, size, type } = await readFile(filePath, fileType);
+    const { url, fields } = await createMeal(type, size);
+    const form = buildFormData(fields, data, path.basename(filePath), type);
+    await uploadToS3(url, form);
+  } catch (err) {
+    console.error("❌ Error during uploadFile:", err);
+    throw err;
+  }
+}
+
+uploadFile(
+  path.resolve(__dirname, "assets", "delicious-meal.jpg"),
+  "image/jpeg",
+).catch(() => process.exit(1));
